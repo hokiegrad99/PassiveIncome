@@ -1,0 +1,9 @@
+{
+  "name": "retirement-income-planner",
+  "version": "1.0.0",
+  "description": "Retirement Income Planner — static HTML site with Square Payment Link integration",
+  "main": "index.html",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
+}

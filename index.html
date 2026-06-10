@@ -533,22 +533,209 @@
       padding-top: 16px;
       border-top: 1px solid var(--border);
     }
-    .pro-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 10px;
-      border-radius: 50px;
-      font-size: 0.75rem;
+
+    /* PDF Print Template */
+    .pdf-print-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 800px;
+      background: #ffffff;
+      color: #1e293b;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      padding: 40px;
+      box-sizing: border-box;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .pdf-header {
+      text-align: center;
+      padding-bottom: 20px;
+      margin-bottom: 24px;
+      border-bottom: 2px solid #0f766e;
+    }
+    .pdf-header h1 {
+      font-size: 1.6rem;
       font-weight: 700;
+      color: #0f766e;
+      margin-bottom: 6px;
+    }
+    .pdf-header .pdf-date {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+    .pdf-section {
+      margin-bottom: 24px;
+    }
+    .pdf-section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f766e;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .pdf-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .pdf-summary-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px;
+    }
+    .pdf-summary-label {
+      font-size: 0.75rem;
+      color: #64748b;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      background: var(--accent-faint);
-      color: var(--accent);
-      border: 1px solid var(--accent);
-      margin-left: auto;
+      margin-bottom: 4px;
     }
-
+    .pdf-summary-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #0f766e;
+    }
+    .pdf-results-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .pdf-risk-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      break-inside: avoid;
+    }
+    .pdf-risk-card .risk-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pdf-risk-card .risk-badge {
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .pdf-risk-card .risk-badge.low { background: #dcfce7; color: #14532d; }
+    .pdf-risk-card .risk-badge.medium { background: #fef3c7; color: #451a03; }
+    .pdf-risk-card .risk-badge.high { background: #fee2e2; color: #450a0a; }
+    .pdf-risk-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.9rem;
+    }
+    .pdf-risk-stat:last-child { border-bottom: none; }
+    .pdf-risk-stat-label { color: #64748b; }
+    .pdf-risk-stat-value { font-weight: 700; }
+    .pdf-holding-list {
+      margin-top: 12px;
+    }
+    .pdf-holding-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 0.85rem;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .pdf-holding-item:last-child { border-bottom: none; }
+    .pdf-footer {
+      margin-top: 30px;
+      padding-top: 16px;
+      border-top: 1px solid #e2e8f0;
+      font-size: 0.75rem;
+      color: #64748b;
+      text-align: center;
+    }
+    .pdf-footer p {
+      margin-bottom: 4px;
+    }
+    .pdf-page-break {
+      page-break-after: always;
+    }
+    .pdf-chart-section {
+      margin: 20px 0 24px;
+      text-align: center;
+    }
+    .pdf-chart-section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f766e;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .pdf-chart-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .pdf-pie-chart {
+      max-width: 260px;
+      width: 100%;
+      height: auto;
+      margin: 12px auto;
+      display: block;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .pdf-growth-chart {
+      max-width: 100%;
+      width: 100%;
+      height: auto;
+      margin: 16px auto;
+      display: block;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .pdf-comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+    .pdf-comparison-table th {
+      background: #f8fafc;
+      border-bottom: 2px solid #e2e8f0;
+      padding: 10px;
+      text-align: center;
+      font-weight: 600;
+      color: #0f766e;
+    }
+    .pdf-comparison-table td {
+      border-bottom: 1px solid #e2e8f0;
+      padding: 10px;
+      text-align: center;
+    }
+    .pdf-comparison-table td:first-child,
+    .pdf-comparison-table th:first-child {
+      text-align: left;
+      font-weight: 600;
+      color: #64748b;
+    }
+    .pdf-comparison-table .risk-low { color: #14532d; background: #dcfce7; font-weight: 700; }
+    .pdf-comparison-table .risk-medium { color: #451a03; background: #fef3c7; font-weight: 700; }
+    .pdf-comparison-table .risk-high { color: #450a0a; background: #fee2e2; font-weight: 700; }
     /* What If Section */
     .whatif-card {
       background: var(--card);
@@ -740,7 +927,21 @@
           </div>
           <span class="input-hint" id="pensionIncomeHint">Leave blank or 0 if none</span>
         </div>
+        <div class="form-group">
+          <label for="targetIncomeInput">Target Retirement Income</label>
+          <div class="currency-input">
+            <span class="prefix">$</span>
+            <input type="number" id="targetIncomeInput" name="targetIncomeInput" value="64000" min="0" step="1000" oninput="onTargetIncomeInput()" aria-describedby="targetIncomeHint">
+          </div>
+          <span class="input-hint" id="targetIncomeHint">Defaults to 80% of your current income. Edit to override.</span>
+        </div>
       </div>
+      <p style="color: var(--text-secondary); margin-top: 16px; font-size: 0.95rem; line-height: 1.5;">
+        <span style="font-weight: 600; color: var(--primary);">💡 How this works:</span>
+        The planner assumes you'll need <strong>80% of your current annual income</strong> in retirement (the "Target Retirement Income" above).
+        This is a common rule of thumb, but you can adjust it to match your expected lifestyle.
+        The "Net Income Needed" is what's left after Social Security and pension are accounted for.
+      </p>
       <div class="summary-box">
         <div class="summary-item">
           <div class="summary-label">Target Retirement Income</div>
@@ -859,9 +1060,8 @@
         </div>
       </div>
       <div class="export-actions" id="exportActions">
-        <button class="btn btn-primary" onclick="exportToCSV()">⬇️ Export to CSV</button>
-        <button class="btn btn-primary" onclick="exportToPDF()">📄 Export to PDF</button>
-        <span class="pro-badge">👑 Pro Feature</span>
+        <button class="btn btn-primary" id="exportCsvBtn" onclick="exportToCSV()">⬇️ Export to CSV</button>
+        <button class="btn btn-primary" id="exportPdfBtn" onclick="exportToPDF()">📄 Export to PDF</button>
       </div>
     </div>
 
@@ -886,6 +1086,9 @@
     </footer>
   </div>
 
+  <!-- Hidden PDF Print Container -->
+  <div id="pdfPrintContainer" class="pdf-print-container"></div>
+
   <script>
     // ==================== State ====================
     let holdings = [];
@@ -893,6 +1096,7 @@
     let comparisonChart = null;
     let comparisonLumpSums = {};
     let whatIfAdjustment = 0;
+    let targetIncomeOverridden = false;
 
     const defaultHoldings = [];
 
@@ -902,7 +1106,7 @@
     ];
 
     const recommendedHoldings = [
-      { symbol: 'BTCI', rate: 45.27, expenseRatio: 0.99, risk: 5, description: 'NEOS Bitcoin High Income ETF — holds Bitcoin ETPs with a covered call strategy for high monthly income.' },
+      { symbol: 'BTCI', rate: 32, expenseRatio: 0.99, risk: 5, description: 'NEOS Bitcoin High Income ETF — holds Bitcoin ETPs with a covered call strategy for high monthly income.' },
       { symbol: 'QQQI', rate: 13.76, expenseRatio: 0.68, risk: 4, description: 'NEOS Nasdaq-100 High Income ETF — invests in Nasdaq-100 stocks using a covered call strategy for monthly income.' },
       { symbol: 'SPYI', rate: 11.87, expenseRatio: 0.68, risk: 3, description: 'NEOS S&P 500 High Income ETF — tracks S&P 500 with a covered call overlay for high monthly income.' },
       { symbol: 'IAUI', rate: 13.17, expenseRatio: 0.79, risk: 3, description: 'NEOS Gold High Income ETF — holds gold-focused ETPs using a dynamic covered call strategy for monthly income.' },
@@ -992,6 +1196,11 @@
 
     function getAdjustedReturn(h) {
       return h.return * (1 + whatIfAdjustment / 100);
+    }
+
+    function onTargetIncomeInput() {
+      targetIncomeOverridden = true;
+      calculate();
     }
 
     function updateWhatIfSection() {
@@ -1184,7 +1393,7 @@
       const currentIncome = parseInput(document.getElementById('currentIncome').value);
       const ssIncome = parseInput(document.getElementById('ssIncome').value);
       const pensionIncome = parseInput(document.getElementById('pensionIncome').value);
-      const targetIncome = currentIncome * 0.80;
+      const targetIncome = parseInput(document.getElementById('targetIncomeInput').value);
       const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
 
       const lines = [];
@@ -1231,69 +1440,431 @@
       URL.revokeObjectURL(url);
     }
 
+    function createGrowthChartImage(netIncome) {
+      // Compute growth data for each risk profile
+      const riskLevels = ['low', 'medium', 'high'];
+      const riskLabels = { low: 'Conservative', medium: 'Balanced', high: 'Aggressive' };
+      const riskLineColors = { low: '#22c55e', medium: '#f59e0b', high: '#ef4444' };
+      const riskFillColors = { low: 'rgba(34,197,94,0.1)', medium: 'rgba(245,158,11,0.1)', high: 'rgba(239,68,68,0.1)' };
+      const years = Array.from({ length: 21 }, (_, i) => i); // 0 to 20
+      const datasets = [];
+
+      riskLevels.forEach(risk => {
+        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+        if (totalPct <= 0) return;
+        const adjustedHoldings = holdings.map(h => {
+          const pct = totalPct > 0 ? (h[risk] / totalPct) * 100 : 0;
+          return { ...h, allocPct: pct };
+        });
+        const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
+        const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        if (totalLumpSum <= 0) return;
+
+        const data = years.map(year => {
+          return totalLumpSum * Math.pow(1 + weightedReturn / 100, year);
+        });
+
+        datasets.push({
+          label: riskLabels[risk],
+          data,
+          borderColor: riskLineColors[risk],
+          backgroundColor: riskFillColors[risk],
+          fill: true,
+          tension: 0.3,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          borderWidth: 2
+        });
+      });
+
+      if (datasets.length === 0) return null;
+
+      // Create temporary canvas
+      const canvas = document.createElement('canvas');
+      canvas.width = 800;
+      canvas.height = 400;
+      canvas.style.position = 'fixed';
+      canvas.style.left = '-9999px';
+      document.body.appendChild(canvas);
+
+      const ctx = canvas.getContext('2d');
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: years.map(y => 'Year ' + y),
+          datasets
+        },
+        options: {
+          responsive: false,
+          maintainAspectRatio: false,
+          animation: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Projected Portfolio Growth (20 Years)',
+              color: '#1e293b',
+              font: { size: 16, weight: '600' },
+              padding: { bottom: 16 }
+            },
+            legend: {
+              position: 'top',
+              labels: {
+                color: '#1e293b',
+                font: { size: 12, weight: '500' },
+                usePointStyle: true,
+                pointStyle: 'line',
+                padding: 20
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  return `${context.dataset.label}: ${formatCurrency(context.parsed.y)}`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#64748b', font: { size: 11 } },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              title: {
+                display: true,
+                text: 'Years',
+                color: '#64748b',
+                font: { size: 12, weight: '600' }
+              }
+            },
+            y: {
+              ticks: {
+                color: '#64748b',
+                font: { size: 11 },
+                callback: function(value) {
+                  return formatCurrency(value);
+                }
+              },
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              title: {
+                display: true,
+                text: 'Portfolio Value',
+                color: '#64748b',
+                font: { size: 12, weight: '600' }
+              }
+            }
+          }
+        }
+      });
+
+      const image = chart.toBase64Image('image/png', 1.0);
+      chart.destroy();
+      document.body.removeChild(canvas);
+      return image;
+    }
+
     function exportToPDF() {
       const resultsCard = document.getElementById('resultsCard');
       if (resultsCard.style.display === 'none') {
         alert('No results to export. Make sure you have holdings with allocations set.');
         return;
       }
-      const exportActions = document.getElementById('exportActions');
-      // Temporarily hide export buttons so they don't appear in the PDF
-      if (exportActions) exportActions.style.display = 'none';
 
-      try {
-        // Clone the results card to a temporary off-screen container for clean capture
-        const clone = resultsCard.cloneNode(true);
-        clone.style.display = 'block';
-        clone.style.animation = 'none';
-        clone.querySelectorAll('*').forEach(el => { el.style.animation = 'none'; });
+      const currentIncome = parseInput(document.getElementById('currentIncome').value);
+      const ssIncome = parseInput(document.getElementById('ssIncome').value);
+      const pensionIncome = parseInput(document.getElementById('pensionIncome').value);
+      const targetIncome = parseInput(document.getElementById('targetIncomeInput').value);
+      const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
+      const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-        // Convert canvas charts to images so html2canvas can capture them
-        const canvases = resultsCard.querySelectorAll('canvas');
-        const cloneCanvases = clone.querySelectorAll('canvas');
-        canvases.forEach((canvas, i) => {
-          if (cloneCanvases[i]) {
-            const img = document.createElement('img');
-            img.src = canvas.toDataURL('image/png');
-            img.style.width = canvas.offsetWidth + 'px';
-            img.style.height = canvas.offsetHeight + 'px';
-            img.style.display = 'block';
-            cloneCanvases[i].parentNode.replaceChild(img, cloneCanvases[i]);
-          }
-        });
-
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'fixed';
-        tempContainer.style.top = '0';
-        tempContainer.style.left = '0';
-        tempContainer.style.width = resultsCard.offsetWidth + 'px';
-        tempContainer.style.opacity = '0';
-        tempContainer.style.pointerEvents = 'none';
-        tempContainer.style.zIndex = '-1';
-        tempContainer.appendChild(clone);
-        document.body.appendChild(tempContainer);
-
-        const opt = {
-          margin: [0.5, 0.5, 0.5, 0.5],
-          filename: 'retirement-plan-' + new Date().toISOString().slice(0, 10) + '.pdf',
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(clone).save().then(() => {
-          document.body.removeChild(tempContainer);
-          if (exportActions) exportActions.style.display = '';
-        }).catch((err) => {
-          console.error(err);
-          document.body.removeChild(tempContainer);
-          if (exportActions) exportActions.style.display = '';
-          alert('PDF export failed. Please try again.');
-        });
-      } catch (e) {
-        alert('PDF export failed. Please try again.');
-        if (exportActions) exportActions.style.display = '';
+      // Capture comparison chart as base64 image if it exists
+      let chartImageHtml = '';
+      if (comparisonChart) {
+        try {
+          const originalAnimation = comparisonChart.options.animation;
+          comparisonChart.options.animation = false;
+          comparisonChart.update('none');
+          const chartImage = comparisonChart.toBase64Image('image/png', 1.0);
+          comparisonChart.options.animation = originalAnimation;
+          chartImageHtml = `
+            <div class="pdf-chart-section">
+              <h2>Allocation Comparison Across Risk Profiles</h2>
+              <img src="${chartImage}" class="pdf-chart-img" alt="Allocation comparison chart showing Low, Medium, and High risk allocations across all holdings">
+            </div>
+          `;
+        } catch (e) {
+          console.warn('Could not capture comparison chart for PDF:', e);
+        }
       }
+
+      const container = document.getElementById('pdfPrintContainer');
+      let html = '';
+
+      // Header
+      html += `
+        <div class="pdf-header">
+          <h1>Retirement Income Planner</h1>
+          <div class="pdf-date">${dateStr}</div>
+        </div>
+      `;
+
+      // Income Summary
+      html += `
+        <div class="pdf-section">
+          <h2>Income Summary</h2>
+          <div class="pdf-summary-grid">
+            <div class="pdf-summary-item">
+              <div class="pdf-summary-label">Current Annual Income</div>
+              <div class="pdf-summary-value">${formatCurrency(currentIncome)}</div>
+            </div>
+            <div class="pdf-summary-item">
+              <div class="pdf-summary-label">Social Security</div>
+              <div class="pdf-summary-value">${formatCurrency(ssIncome)}</div>
+            </div>
+            <div class="pdf-summary-item">
+              <div class="pdf-summary-label">Pension</div>
+              <div class="pdf-summary-value">${formatCurrency(pensionIncome)}</div>
+            </div>
+            <div class="pdf-summary-item">
+              <div class="pdf-summary-label">Target Retirement Income</div>
+              <div class="pdf-summary-value">${formatCurrency(targetIncome)}</div>
+            </div>
+            <div class="pdf-summary-item">
+              <div class="pdf-summary-label">Net Income Needed</div>
+              <div class="pdf-summary-value">${formatCurrency(netIncome)}</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Holdings Table
+      if (holdings.length > 0) {
+        html += `
+          <div class="pdf-section">
+            <h2>Investment Holdings</h2>
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+              <thead>
+                <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
+                  <th style="padding:8px; text-align:left;">Holding</th>
+                  <th style="padding:8px; text-align:right;">Return</th>
+                  <th style="padding:8px; text-align:right;">Low %</th>
+                  <th style="padding:8px; text-align:right;">Medium %</th>
+                  <th style="padding:8px; text-align:right;">High %</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        holdings.forEach(h => {
+          html += `
+            <tr style="border-bottom:1px solid #e2e8f0;">
+              <td style="padding:8px;">${h.name || 'Unnamed'}</td>
+              <td style="padding:8px; text-align:right;">${h.return.toFixed(2)}%</td>
+              <td style="padding:8px; text-align:right;">${h.low}%</td>
+              <td style="padding:8px; text-align:right;">${h.medium}%</td>
+              <td style="padding:8px; text-align:right;">${h.high}%</td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table></div>`;
+      }
+
+      // Capture individual pie charts for each risk profile
+      const pieChartImages = {};
+      ['low', 'medium', 'high'].forEach(risk => {
+        if (charts[risk]) {
+          try {
+            // Temporarily disable animation to ensure a fully rendered frame
+            const originalAnimation = charts[risk].options.animation;
+            charts[risk].options.animation = false;
+            charts[risk].update('none');
+            pieChartImages[risk] = charts[risk].toBase64Image('image/png', 1.0);
+            // Restore original animation
+            charts[risk].options.animation = originalAnimation;
+          } catch (e) {
+            console.warn('Could not capture pie chart for ' + risk + ' risk profile:', e);
+          }
+        }
+      });
+
+      // Build comparison summary data for all risk profiles
+      const riskLevels = ['low', 'medium', 'high'];
+      const riskLabels = { low: 'Conservative', medium: 'Balanced', high: 'Aggressive' };
+      const riskBadgeClasses = { low: 'low', medium: 'medium', high: 'high' };
+      const riskTableClasses = { low: 'risk-low', medium: 'risk-medium', high: 'risk-high' };
+      const summaryData = {};
+      riskLevels.forEach(risk => {
+        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+        if (totalPct <= 0) {
+          summaryData[risk] = null;
+          return;
+        }
+        const adjustedHoldings = holdings.map(h => {
+          const pct = totalPct > 0 ? (h[risk] / totalPct) * 100 : 0;
+          return { ...h, allocPct: pct };
+        });
+        const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
+        const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        const activeHoldings = adjustedHoldings.filter(h => h.allocPct > 0).length;
+        summaryData[risk] = { weightedReturn, totalLumpSum, activeHoldings };
+      });
+
+      // Summary comparison table
+      html += `<div class="pdf-section"><h2>Strategy Comparison</h2>`;
+      html += `<table class="pdf-comparison-table"><thead><tr><th>Metric</th>`;
+      riskLevels.forEach(risk => {
+        const cls = riskTableClasses[risk];
+        const label = riskLabels[risk];
+        html += `<th class="${cls}">${label}</th>`;
+      });
+      html += `</tr></thead><tbody>`;
+
+      // Weighted Avg Return row
+      html += `<tr><td>Weighted Avg Return</td>`;
+      riskLevels.forEach(risk => {
+        const data = summaryData[risk];
+        html += `<td>${data ? formatPercent(data.weightedReturn) : '—'}</td>`;
+      });
+      html += `</tr>`;
+
+      // Total Lump Sum Needed row
+      html += `<tr><td>Total Lump Sum Needed</td>`;
+      riskLevels.forEach(risk => {
+        const data = summaryData[risk];
+        html += `<td>${data ? formatCurrency(data.totalLumpSum) : '—'}</td>`;
+      });
+      html += `</tr>`;
+
+      // Active Holdings row
+      html += `<tr><td>Active Holdings</td>`;
+      riskLevels.forEach(risk => {
+        const data = summaryData[risk];
+        html += `<td>${data ? data.activeHoldings : '—'}</td>`;
+      });
+      html += `</tr></tbody></table></div>`;
+
+      // Results by Risk Profile (individual cards)
+      html += `<div class="pdf-section"><h2>Strategy Details</h2><div class="pdf-results-grid">`;
+      riskLevels.forEach(risk => {
+        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+        if (totalPct <= 0) {
+          html += `
+            <div class="pdf-risk-card">
+              <div class="risk-title">${riskLabels[risk]} <span class="risk-badge ${riskBadgeClasses[risk]}">${risk} risk</span></div>
+              <p style="color:#64748b; font-size:0.85rem;">No allocations set for this risk profile.</p>
+            </div>
+          `;
+          return;
+        }
+        const adjustedHoldings = holdings.map(h => {
+          const pct = totalPct > 0 ? (h[risk] / totalPct) * 100 : 0;
+          return { ...h, allocPct: pct };
+        });
+        const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
+        const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+
+        let holdingsHtml = '';
+        adjustedHoldings.forEach((h, idx) => {
+          const amount = totalLumpSum * (h.allocPct / 100);
+          holdingsHtml += `
+            <div class="pdf-holding-item">
+              <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${chartColors[idx % chartColors.length]};margin-right:6px;"></span>${h.name || 'Unnamed'}</span>
+              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)}</span>
+            </div>
+          `;
+        });
+
+        const pieChartHtml = pieChartImages[risk]
+          ? `<img src="${pieChartImages[risk]}" class="pdf-pie-chart" alt="${riskLabels[risk]} portfolio allocation pie chart">`
+          : '';
+
+        html += `
+          <div class="pdf-risk-card">
+            <div class="risk-title">${riskLabels[risk]} <span class="risk-badge ${riskBadgeClasses[risk]}">${risk} risk</span></div>
+            <div class="pdf-risk-stat">
+              <span class="pdf-risk-stat-label">Weighted Avg Return</span>
+              <span class="pdf-risk-stat-value">${formatPercent(weightedReturn)}</span>
+            </div>
+            <div class="pdf-risk-stat">
+              <span class="pdf-risk-stat-label">Total Lump Sum Needed</span>
+              <span class="pdf-risk-stat-value">${formatCurrency(totalLumpSum)}</span>
+            </div>
+            ${pieChartHtml}
+            <div class="pdf-holding-list">${holdingsHtml}</div>
+          </div>
+        `;
+      });
+      html += `</div></div>`;
+
+      // Growth Projection Chart
+      const growthChartImage = createGrowthChartImage(netIncome);
+      if (growthChartImage) {
+        html += `
+          <div class="pdf-chart-section">
+            <h2>Projected Portfolio Growth Over 20 Years</h2>
+            <img src="${growthChartImage}" class="pdf-growth-chart" alt="Line chart showing projected portfolio growth over 20 years for Conservative, Balanced, and Aggressive strategies">
+          </div>
+        `;
+      }
+
+      // Comparison Chart
+      html += chartImageHtml;
+
+      // Footer
+      html += `
+        <div class="pdf-footer">
+          <p><strong>Disclaimer:</strong> This tool is for educational purposes only. It is NOT financial advice. Always do your own research and consult with a qualified financial advisor.</p>
+          <p>Retirement Income Planner — Built for educational purposes</p>
+        </div>
+      `;
+
+      container.innerHTML = html;
+      container.style.opacity = '1';
+
+      const opt = {
+        margin: [0.6, 0.5, 0.6, 0.5], // top, left, bottom, right (inches)
+        filename: 'retirement-plan-' + new Date().toISOString().slice(0, 10) + '.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+        pagebreak: { mode: 'css', avoid: '.pdf-risk-card' }
+      };
+
+      html2pdf().set(opt).from(container).toPdf().get('pdf').then(function(pdf) {
+        const totalPages = pdf.internal.getNumberOfPages();
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        for (let i = 1; i <= totalPages; i++) {
+          pdf.setPage(i);
+          // Header
+          pdf.setFontSize(10);
+          pdf.setTextColor(15, 118, 110);
+          pdf.text('Retirement Income Planner', 0.5, 0.35);
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text(dateStr, pageWidth - 0.5, 0.35, { align: 'right' });
+          // Header line
+          pdf.setDrawColor(226, 232, 240);
+          pdf.setLineWidth(0.01);
+          pdf.line(0.5, 0.4, pageWidth - 0.5, 0.4);
+
+          // Footer
+          pdf.setFontSize(8);
+          pdf.setTextColor(100, 116, 139);
+          pdf.text('Page ' + i + ' of ' + totalPages, pageWidth - 0.5, pageHeight - 0.3, { align: 'right' });
+          pdf.text('For educational purposes only — not financial advice.', 0.5, pageHeight - 0.3);
+        }
+        pdf.save(opt.filename);
+        container.innerHTML = '';
+        container.style.opacity = '0';
+      }).catch(function(err) {
+        console.error(err);
+        container.innerHTML = '';
+        container.style.opacity = '0';
+        alert('PDF export failed. Please try again.');
+      });
     }
 
     // ==================== Holdings Table ====================
@@ -1517,8 +2088,14 @@
       const currentIncome = parseInput(document.getElementById('currentIncome').value);
       const ssIncome = parseInput(document.getElementById('ssIncome').value);
       const pensionIncome = parseInput(document.getElementById('pensionIncome').value);
+      const targetIncomeInput = document.getElementById('targetIncomeInput');
 
-      const targetIncome = currentIncome * 0.80;
+      // Auto-update target income to 80% of current income unless user has overridden it
+      if (!targetIncomeOverridden) {
+        targetIncomeInput.value = Math.round(currentIncome * 0.80);
+      }
+
+      const targetIncome = parseInput(targetIncomeInput.value);
       const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
 
       document.getElementById('targetIncome').textContent = formatCurrency(targetIncome);
