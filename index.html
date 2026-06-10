@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retirement Income Planner</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #1e293b;
+      --text-secondary: #64748b;
+      --border: #e2e8f0;
+      --primary: #0f766e;
+      --primary-light: #14b8a6;
+      --primary-faint: #ccfbf1;
+      --accent: #f59e0b;
+      --accent-faint: #fef3c7;
+      --danger: #ef4444;
+      --danger-faint: #fee2e2;
+      --success: #22c55e;
+      --success-faint: #dcfce7;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.1);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border: #334155;
+      --primary: #14b8a6;
+      --primary-light: #5eead4;
+      --primary-faint: #134e4a;
+      --accent: #fbbf24;
+      --accent-faint: #451a03;
+      --danger: #f87171;
+      --danger-faint: #450a0a;
+      --success: #4ade80;
+      --success-faint: #14532d;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.2);
+      --shadow-lg: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 0 24px;
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 8px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transition: all 0.3s;
+      z-index: 100;
+    }
+    .theme-toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    .theme-toggle svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-title .icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .card-title .icon.teal { background: var(--primary-faint); color: var(--primary); }
+    .card-title .icon.amber { background: var(--accent-faint); color: var(--accent); }
+    .card-title .icon.red { background: var(--danger-faint); color: var(--danger); }
+    .card-title .icon.green { background: var(--success-faint); color: var(--success); }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .form-group input {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+    .input-hint {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .summary-box {
+      background: var(--primary-faint);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+    .summary-box .summary-item {
+      flex: 1;
+      min-width: 160px;
+    }
+    .summary-box .summary-label {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .summary-box .summary-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--bg);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    td input {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+    td input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-light);
+      transform: translateY(-1px);
+    }
+    .btn-danger {
+      background: var(--danger-faint);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+    .btn-secondary {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .table-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .table-actions .right { margin-left: auto; }
+
+    .pct-totals {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .pct-total {
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 50px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .pct-total.ok {
+      background: var(--success-faint);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .pct-total.warn {
+      background: var(--danger-faint);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 24px;
+    }
+    .risk-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 2px solid var(--border);
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .risk-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+    .risk-card.low { border-color: var(--success); }
+    .risk-card.medium { border-color: var(--accent); }
+    .risk-card.high { border-color: var(--danger); }
+    .risk-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .risk-header.low { background: var(--success-faint); }
+    .risk-header.medium { background: var(--accent-faint); }
+    .risk-header.high { background: var(--danger-faint); }
+    .risk-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .risk-badge {
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .risk-badge.low { background: var(--success); color: white; }
+    .risk-badge.medium { background: var(--accent); color: #451a03; }
+    .risk-badge.high { background: var(--danger); color: white; }
+    .risk-body {
+      padding: 20px;
+    }
+    .risk-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .risk-stat:last-child { border-bottom: none; }
+    .risk-stat-label { color: var(--text-secondary); font-size: 0.9rem; }
+    .risk-stat-value { font-weight: 700; font-size: 1rem; }
+    .risk-stat-value.large { font-size: 1.3rem; color: var(--primary); }
+    .chart-container {
+      position: relative;
+      height: 220px;
+      margin-top: 16px;
+    }
+    .comparison-container {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .comparison-container .chart-container {
+      height: 320px;
+    }
+    .holding-list {
+      margin-top: 12px;
+    }
+    .holding-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .holding-item:last-child { border-bottom: none; }
+    .holding-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .holding-name { display: flex; align-items: center; }
+
+    .no-data {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-secondary);
+    }
+    .no-data-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .no-data h4 { font-size: 1.1rem; margin-bottom: 8px; color: var(--text); }
+
+    .disclaimer {
+      background: var(--danger-faint);
+      border: 1px solid var(--danger);
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      margin-top: 24px;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    .disclaimer h3 {
+      color: var(--danger);
+      font-size: 1rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .disclaimer ul { margin-left: 20px; margin-top: 8px; }
+    .disclaimer li { margin-bottom: 4px; }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    .currency-input {
+      position: relative;
+    }
+    .currency-input .prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-weight: 500;
+      pointer-events: none;
+    }
+    .currency-input input {
+      padding-left: 28px;
+    }
+
+    /* Recommended Holdings */
+    .recommendation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .recommendation-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      transition: all 0.2s;
+    }
+    .recommendation-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow);
+    }
+    .rec-symbol {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .rec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .rec-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .rec-label { color: var(--text-secondary); }
+    .rec-value { font-weight: 600; }
+    .rec-badge {
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .rec-badge.low { background: var(--success-faint); color: var(--success); }
+    .rec-badge.medium { background: var(--accent-faint); color: var(--accent); }
+    .rec-badge.high { background: var(--danger-faint); color: var(--danger); }
+    .rec-btn {
+      margin-top: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+    .rec-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+    .rec-actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Export Buttons */
+    .export-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    .pro-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: var(--accent-faint);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      margin-left: auto;
+    }
+
+    /* What If Section */
+    .whatif-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      transition: background 0.3s, border-color 0.3s;
+      display: none;
+    }
+    .whatif-card.visible {
+      display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+    .slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin: 16px 0;
+      flex-wrap: wrap;
+    }
+    .slider-wrap input[type="range"] {
+      flex: 1;
+      min-width: 200px;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--border);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+    .slider-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 2px solid var(--card);
+      box-shadow: var(--shadow);
+    }
+    .slider-wrap input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      border: 2px solid var(--card);
+      box-shadow: var(--shadow);
+    }
+    .slider-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 60px;
+      text-align: center;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+    .preset-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .preset-btn {
+      padding: 6px 14px;
+      border-radius: 50px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .preset-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .preset-btn.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .whatif-preview {
+      margin-top: 16px;
+      padding: 14px;
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      border: 1px solid var(--border);
+    }
+    .whatif-preview-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+    .whatif-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .whatif-row:last-child {
+      border-bottom: none;
+    }
+    .whatif-row .adjusted {
+      font-weight: 600;
+      color: var(--primary);
+    }
+    .whatif-row .original {
+      color: var(--text-secondary);
+      text-decoration: line-through;
+      margin-right: 6px;
+      font-size: 0.8rem;
+    }
+    .whatif-row .neutral {
+      color: var(--text-secondary);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card, .risk-card {
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.5rem; }
+      .results-grid { grid-template-columns: 1fr; }
+      .card { padding: 18px; }
+      .theme-toggle { top: 10px; right: 10px; padding: 6px 12px; font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">
+    <span id="themeIcon" aria-hidden="true">🌙</span>
+    <span id="themeLabel">Dark Mode</span>
+  </button>
+
+  <div class="container">
+    <header>
+      <h1>Retirement Income Planner</h1>
+      <p>Plan your lump sum investment to generate passive income for retirement</p>
+    </header>
+
+    <!-- Income Section -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon teal" aria-hidden="true">💰</span>
+        Your Income & Goals
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="currentIncome">Current Annual Income</label>
+          <div class="currency-input">
+            <span class="prefix">$</span>
+            <input type="number" id="currentIncome" name="currentIncome" value="80000" min="0" step="1000" oninput="calculate()" aria-describedby="currentIncomeHint">
+          </div>
+          <span class="input-hint" id="currentIncomeHint">Your gross annual income before taxes</span>
+        </div>
+        <div class="form-group">
+          <label for="ssIncome">Expected Social Security (Annual)</label>
+          <div class="currency-input">
+            <span class="prefix">$</span>
+            <input type="number" id="ssIncome" name="ssIncome" value="24000" min="0" step="1000" oninput="calculate()" aria-describedby="ssIncomeHint">
+          </div>
+          <span class="input-hint" id="ssIncomeHint">Leave blank or 0 if unknown</span>
+        </div>
+        <div class="form-group">
+          <label for="pensionIncome">Expected Pension (Annual)</label>
+          <div class="currency-input">
+            <span class="prefix">$</span>
+            <input type="number" id="pensionIncome" name="pensionIncome" value="0" min="0" step="1000" oninput="calculate()" aria-describedby="pensionIncomeHint">
+          </div>
+          <span class="input-hint" id="pensionIncomeHint">Leave blank or 0 if none</span>
+        </div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-item">
+          <div class="summary-label">Target Retirement Income</div>
+          <div class="summary-value" id="targetIncome">$0</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Net Income Needed</div>
+          <div class="summary-value" id="netIncome">$0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommended Holdings Section -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon amber" aria-hidden="true">⭐</span>
+        Recommended Holdings
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+        Browse our curated list of recommended ETFs and funds. Click <strong>“Add to Portfolio”</strong> to include them in your investment plan.
+      </p>
+      <div class="recommendation-grid" id="recommendationGrid">
+        <!-- Cards inserted by JS -->
+      </div>
+      <div class="rec-actions">
+        <button class="btn btn-primary" onclick="addAllRecommended()">Add All Recommended</button>
+        <button class="btn btn-secondary" onclick="suggestAllocations()">🎯 Suggest Allocations</button>
+      </div>
+    </div>
+
+    <!-- Holdings Section -->
+    <div class="card">
+      <div class="card-title">
+        <span class="icon amber" aria-hidden="true">📊</span>
+        Investment Holdings
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+        Add your investment holdings with expected annual return rates. Then set the allocation percentage for each risk profile.
+        The tool will calculate the total lump sum needed and the amount to invest in each holding.
+      </p>
+      <div class="pct-totals" id="pctTotals">
+        <div class="pct-total" id="pctLow">Low Risk: 0%</div>
+        <div class="pct-total" id="pctMedium">Medium Risk: 0%</div>
+        <div class="pct-total" id="pctHigh">High Risk: 0%</div>
+      </div>
+      <div class="table-wrap">
+        <table id="holdingsTable">
+          <thead>
+            <tr>
+              <th scope="col">Holding / Symbol</th>
+              <th scope="col">Expected Annual Return</th>
+              <th scope="col">Low Risk %</th>
+              <th scope="col">Medium Risk %</th>
+              <th scope="col">High Risk %</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="holdingsBody">
+            <!-- Rows inserted by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="table-actions">
+        <button class="btn btn-primary" onclick="addHolding()">+ Add Holding</button>
+        <button class="btn btn-secondary" onclick="loadDefaults()">↻ Load Defaults</button>
+        <button class="btn btn-secondary" onclick="calculate()">🔄 Recalculate</button>
+        <button class="btn btn-secondary right" onclick="resetHoldings()">Reset All</button>
+      </div>
+    </div>
+
+    <!-- What If Scenarios Section -->
+    <div class="whatif-card" id="whatIfCard">
+      <div class="card-title">
+        <span class="icon teal" aria-hidden="true">🔮</span>
+        What If Scenarios
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 0.95rem;">
+        Adjust expected returns to see how different market conditions affect your strategy. Changes update the results and comparison chart in real-time.
+      </p>
+      <div class="preset-btns" id="presetBtns">
+        <button class="preset-btn" data-preset="bull" onclick="applyWhatIfPreset('bull')">🐂 Bull Market (+20%)</button>
+        <button class="preset-btn" data-preset="bear" onclick="applyWhatIfPreset('bear')">🐻 Bear Market (-30%)</button>
+        <button class="preset-btn" data-preset="recession" onclick="applyWhatIfPreset('recession')">📉 Recession (-50%)</button>
+        <button class="preset-btn" data-preset="reset" onclick="resetWhatIf()">↺ Reset</button>
+      </div>
+      <div class="slider-wrap">
+        <input type="range" id="whatIfSlider" min="-50" max="50" value="0" step="5" oninput="setWhatIfAdjustment(this.value)">
+        <div class="slider-value" id="whatIfValue">0%</div>
+      </div>
+      <div class="slider-labels">
+        <span>-50%</span>
+        <span>0%</span>
+        <span>+50%</span>
+      </div>
+      <div class="whatif-preview" id="whatIfPreview">
+        <!-- Preview rows inserted by JS -->
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="card" id="resultsCard" style="display: none;">
+      <div class="card-title">
+        <span class="icon green" aria-hidden="true">📈</span>
+        Investment Strategy Results
+      </div>
+      <div class="results-grid" id="resultsGrid">
+        <!-- Cards inserted by JS -->
+      </div>
+      <div class="comparison-container" id="comparisonSection" style="display: none;">
+        <div class="card-title">
+          <span class="icon teal" aria-hidden="true">📊</span>
+          Allocation Comparison Across Risk Profiles
+        </div>
+        <div class="chart-container">
+          <canvas id="comparisonChart"></canvas>
+        </div>
+      </div>
+      <div class="export-actions" id="exportActions">
+        <button class="btn btn-primary" onclick="exportToCSV()">⬇️ Export to CSV</button>
+        <button class="btn btn-primary" onclick="exportToPDF()">📄 Export to PDF</button>
+        <span class="pro-badge">👑 Pro Feature</span>
+      </div>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      <h3>⚠️ Important Disclaimer</h3>
+      <p>
+        <strong>This tool is for educational and informational purposes only. It is NOT financial advice.</strong>
+      </p>
+      <ul>
+        <li>All calculations are estimates based on the inputs you provide and assume constant returns, which is not realistic.</li>
+        <li>Market returns fluctuate. Past performance does not guarantee future results.</li>
+        <li>Investment values can go up and down. You may lose money, including your principal.</li>
+        <li>Taxes, inflation, fees, and other costs are not accounted for in these projections.</li>
+        <li>Social Security and pension amounts are estimates and may change.</li>
+        <li><strong>Always do your own research</strong> and consult with a qualified financial advisor before making investment decisions.</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p>Retirement Income Planner — Built for educational purposes</p>
+    </footer>
+  </div>
+
+  <script>
+    // ==================== State ====================
+    let holdings = [];
+    let charts = {};
+    let comparisonChart = null;
+    let comparisonLumpSums = {};
+    let whatIfAdjustment = 0;
+
+    const defaultHoldings = [];
+
+    const chartColors = [
+      '#0f766e', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6',
+      '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
+    ];
+
+    const recommendedHoldings = [
+      { symbol: 'BTCI', rate: 45.27, expenseRatio: 0.99, risk: 5, description: 'NEOS Bitcoin High Income ETF — holds Bitcoin ETPs with a covered call strategy for high monthly income.' },
+      { symbol: 'QQQI', rate: 13.76, expenseRatio: 0.68, risk: 4, description: 'NEOS Nasdaq-100 High Income ETF — invests in Nasdaq-100 stocks using a covered call strategy for monthly income.' },
+      { symbol: 'SPYI', rate: 11.87, expenseRatio: 0.68, risk: 3, description: 'NEOS S&P 500 High Income ETF — tracks S&P 500 with a covered call overlay for high monthly income.' },
+      { symbol: 'IAUI', rate: 13.17, expenseRatio: 0.79, risk: 3, description: 'NEOS Gold High Income ETF — holds gold-focused ETPs using a dynamic covered call strategy for monthly income.' },
+      { symbol: 'SCHD', rate: 3.26, expenseRatio: 0.06, risk: 3, description: 'Schwab U.S. Dividend Equity ETF — tracks dividend-growth companies with strong fundamentals and sustainable yields.' },
+      { symbol: 'GOVT', rate: 3.59, expenseRatio: 0.05, risk: 1, description: 'iShares U.S. Treasury Bond ETF — tracks U.S. Treasury bonds of various maturities for conservative exposure.' },
+      { symbol: 'VOO', rate: 7.0, expenseRatio: 0.03, risk: 3, description: 'Vanguard S&P 500 ETF — tracks the S&P 500 index with ultra-low costs for broad market exposure.' },
+    ];
+
+    // ==================== Theme ====================
+    function initTheme() {
+      const saved = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (saved === 'dark' || (!saved && prefersDark)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeLabel').textContent = 'Light Mode';
+      }
+    }
+
+    function getChartBorderColor() {
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? '#1e293b' : '#ffffff';
+    }
+    function getChartTextColor() {
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? '#f1f5f9' : '#1e293b';
+    }
+    function getChartGridColor() {
+      return document.documentElement.getAttribute('data-theme') === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        document.getElementById('themeIcon').textContent = '🌙';
+        document.getElementById('themeLabel').textContent = 'Dark Mode';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        document.getElementById('themeIcon').textContent = '☀️';
+        document.getElementById('themeLabel').textContent = 'Light Mode';
+      }
+      // Update existing chart borders without full recalculation
+      Object.values(charts).forEach(chart => {
+        if (chart) {
+          chart.data.datasets[0].borderColor = getChartBorderColor();
+          chart.update();
+        }
+      });
+      // Update comparison chart colors
+      if (comparisonChart) {
+        const textColor = getChartTextColor();
+        const gridColor = getChartGridColor();
+        comparisonChart.options.scales.x.ticks.color = textColor;
+        comparisonChart.options.scales.y.ticks.color = textColor;
+        comparisonChart.options.scales.x.title.color = textColor;
+        comparisonChart.options.scales.y.title.color = textColor;
+        comparisonChart.options.scales.x.grid.color = gridColor;
+        comparisonChart.options.scales.y.grid.color = gridColor;
+        comparisonChart.options.plugins.legend.labels.color = textColor;
+        comparisonChart.update();
+      }
+    }
+
+    // ==================== Helpers ====================
+    function formatCurrency(num) {
+      if (!isFinite(num) || isNaN(num)) return '—';
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(num);
+    }
+    function formatPercent(num) {
+      if (!isFinite(num) || isNaN(num)) return '—';
+      return num.toFixed(2) + '%';
+    }
+    function parseInput(val) {
+      const n = parseFloat(val);
+      return isNaN(n) ? 0 : Math.max(0, n);
+    }
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function getRiskBadge(risk) {
+      if (risk <= 2) return `<span class="rec-badge low">Low Risk (${risk})</span>`;
+      if (risk === 3) return `<span class="rec-badge medium">Medium Risk (${risk})</span>`;
+      return `<span class="rec-badge high">High Risk (${risk})</span>`;
+    }
+
+    function getAdjustedReturn(h) {
+      return h.return * (1 + whatIfAdjustment / 100);
+    }
+
+    function updateWhatIfSection() {
+      const card = document.getElementById('whatIfCard');
+      const preview = document.getElementById('whatIfPreview');
+      const valueEl = document.getElementById('whatIfValue');
+      const slider = document.getElementById('whatIfSlider');
+      const presetBtns = document.querySelectorAll('.preset-btn');
+
+      if (!card || !preview || !valueEl || !slider) return;
+
+      if (holdings.length === 0) {
+        card.classList.remove('visible');
+        return;
+      }
+      card.classList.add('visible');
+
+      slider.value = whatIfAdjustment;
+      valueEl.textContent = (whatIfAdjustment >= 0 ? '+' : '') + whatIfAdjustment + '%';
+      if (whatIfAdjustment === 0) {
+        valueEl.style.color = 'var(--text-secondary)';
+      } else if (whatIfAdjustment > 0) {
+        valueEl.style.color = 'var(--success)';
+      } else {
+        valueEl.style.color = 'var(--danger)';
+      }
+
+      // Update active preset button
+      presetBtns.forEach(btn => btn.classList.remove('active'));
+      let activePreset = null;
+      if (whatIfAdjustment === 20) activePreset = 'bull';
+      else if (whatIfAdjustment === -30) activePreset = 'bear';
+      else if (whatIfAdjustment === -50) activePreset = 'recession';
+      else if (whatIfAdjustment === 0) activePreset = 'reset';
+      if (activePreset) {
+        const btn = Array.from(presetBtns).find(b => b.dataset.preset === activePreset);
+        if (btn) btn.classList.add('active');
+      }
+
+      if (whatIfAdjustment === 0) {
+        preview.innerHTML = '<div class="whatif-preview-title">Adjusted Returns (no change)</div><div class="whatif-row" style="color: var(--text-secondary);">All holdings use their original expected returns.</div>';
+        return;
+      }
+
+      let rows = `<div class="whatif-preview-title">Adjusted Returns (${whatIfAdjustment >= 0 ? '+' : ''}${whatIfAdjustment}%)</div>`;
+      holdings.forEach(h => {
+        const adj = getAdjustedReturn(h);
+        const diff = adj - h.return;
+        const diffStr = diff >= 0 ? `+${diff.toFixed(2)}` : diff.toFixed(2);
+        rows += `
+          <div class="whatif-row">
+            <span>${h.name || 'Unnamed'}</span>
+            <span>
+              <span class="original">${h.return.toFixed(2)}%</span>
+              <span class="adjusted">${adj.toFixed(2)}% (${diffStr})</span>
+            </span>
+          </div>
+        `;
+      });
+      preview.innerHTML = rows;
+    }
+
+    function setWhatIfAdjustment(val) {
+      whatIfAdjustment = parseInt(val, 10);
+      updateWhatIfSection();
+      calculate();
+    }
+
+    function applyWhatIfPreset(name) {
+      const presets = { bull: 20, bear: -30, recession: -50 };
+      whatIfAdjustment = presets[name] || 0;
+      updateWhatIfSection();
+      calculate();
+    }
+
+    function resetWhatIf() {
+      whatIfAdjustment = 0;
+      updateWhatIfSection();
+      calculate();
+    }
+
+    function renderRecommendations() {
+      const grid = document.getElementById('recommendationGrid');
+      grid.innerHTML = '';
+      recommendedHoldings.forEach((rec, i) => {
+        const exists = holdings.some(h => h.name === rec.symbol);
+        const card = document.createElement('div');
+        card.className = 'recommendation-card';
+        card.innerHTML = `
+          <div class="rec-symbol">${rec.symbol}</div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.5;">${rec.description}</p>
+          <div class="rec-row">
+            <span class="rec-label">Expected Return</span>
+            <span class="rec-value">${rec.rate.toFixed(2)}%</span>
+          </div>
+          <div class="rec-row">
+            <span class="rec-label">Expense Ratio</span>
+            <span class="rec-value">${rec.expenseRatio.toFixed(2)}%</span>
+          </div>
+          <div class="rec-row">
+            <span class="rec-label">Risk Level</span>
+            <span class="rec-value">${getRiskBadge(rec.risk)}</span>
+          </div>
+          <button class="btn ${exists ? 'btn-danger' : 'btn-primary'} rec-btn" id="rec-btn-${i}" onclick="${exists ? `removeFromPortfolio(${i})` : `addToPortfolio(${i})`}">${exists ? 'Remove from Portfolio' : 'Add to Portfolio'}</button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function addToPortfolio(index) {
+      const rec = recommendedHoldings[index];
+      holdings.push({ name: rec.symbol, return: rec.rate, low: 0, medium: 0, high: 0 });
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations(); // Re-render to update all button states
+    }
+
+    function removeFromPortfolio(index) {
+      const rec = recommendedHoldings[index];
+      const idx = holdings.findIndex(h => h.name === rec.symbol);
+      if (idx === -1) {
+        alert(`${rec.symbol} is not in your portfolio.`);
+        return;
+      }
+      holdings.splice(idx, 1);
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations();
+    }
+
+    function addAllRecommended() {
+      let added = 0;
+      recommendedHoldings.forEach((rec, i) => {
+        const exists = holdings.some(h => h.name === rec.symbol);
+        if (!exists) {
+          holdings.push({ name: rec.symbol, return: rec.rate, low: 0, medium: 0, high: 0 });
+          added++;
+        }
+      });
+      if (added === 0) {
+        alert('All recommended holdings are already in your portfolio.');
+        return;
+      }
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations(); // Re-render to update button states
+      alert(`Added ${added} recommended holding(s) to your portfolio. Set your allocation percentages in the table above.`);
+    }
+
+    function suggestAllocations() {
+      if (holdings.length === 0) {
+        alert('No holdings are in your portfolio yet. Add some first!');
+        return;
+      }
+
+      // Reset all allocations to 0
+      holdings.forEach(h => { h.low = 0; h.medium = 0; h.high = 0; });
+
+      // Hardcoded default allocations by symbol
+      const lowAllocations = { QQQI: 10, SPYI: 10, IAUI: 10, SCHD: 40, VOO: 20, GOVT: 10 };
+      const mediumAllocations = { BTCI: 10, QQQI: 25, SPYI: 15, IAUI: 15, SCHD: 20, VOO: 10, GOVT: 5 };
+      const highAllocations = { BTCI: 20, QQQI: 50, SPYI: 20, SCHD: 10 };
+
+      // Apply allocations to each holding by symbol name
+      holdings.forEach(h => {
+        if (lowAllocations[h.name] !== undefined) h.low = lowAllocations[h.name];
+        if (mediumAllocations[h.name] !== undefined) h.medium = mediumAllocations[h.name];
+        if (highAllocations[h.name] !== undefined) h.high = highAllocations[h.name];
+      });
+
+      renderHoldingsTable();
+      calculate();
+      alert('Suggested allocations applied based on your selected portfolio. Review and adjust as needed.');
+    }
+
+    // ==================== Export Functions ====================
+    function escapeCSV(val) {
+      const str = String(val ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    function exportToCSV() {
+      if (holdings.length === 0) {
+        alert('No data to export. Add holdings first.');
+        return;
+      }
+      const currentIncome = parseInput(document.getElementById('currentIncome').value);
+      const ssIncome = parseInput(document.getElementById('ssIncome').value);
+      const pensionIncome = parseInput(document.getElementById('pensionIncome').value);
+      const targetIncome = currentIncome * 0.80;
+      const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
+
+      const lines = [];
+      lines.push(['Retirement Income Planner Report']);
+      lines.push(['Generated on', new Date().toLocaleString()]);
+      lines.push([]);
+      lines.push(['Income Summary']);
+      lines.push(['Current Annual Income', currentIncome]);
+      lines.push(['Social Security (Annual)', ssIncome]);
+      lines.push(['Pension (Annual)', pensionIncome]);
+      lines.push(['Target Retirement Income', targetIncome]);
+      lines.push(['Net Income Needed', netIncome]);
+      lines.push([]);
+      lines.push(['Holdings & Allocations']);
+      lines.push(['Holding', 'Return', 'Low Risk %', 'Medium Risk %', 'High Risk %']);
+      holdings.forEach(h => {
+        lines.push([h.name || 'Unnamed', h.return, h.low, h.medium, h.high]);
+      });
+      lines.push([]);
+      lines.push(['Results Summary']);
+      lines.push(['Risk Profile', 'Weighted Avg Return', 'Total Lump Sum Needed']);
+      ['low', 'medium', 'high'].forEach(risk => {
+        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+        if (totalPct <= 0) return;
+        const adjusted = holdings.map(h => ({ ...h, allocPct: totalPct > 0 ? (h[risk] / totalPct) * 100 : 0 }));
+        const weightedReturn = adjusted.reduce((sum, h) => sum + (h.allocPct / 100) * h.return, 0);
+        const lumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        const label = risk === 'low' ? 'Conservative' : risk === 'medium' ? 'Balanced' : 'Aggressive';
+        lines.push([label, weightedReturn.toFixed(2) + '%', Math.round(lumpSum)]);
+      });
+      lines.push([]);
+      lines.push(['Disclaimer']);
+      lines.push(['This tool is for educational purposes only. It is NOT financial advice. Always do your own research.']);
+
+      const csv = lines.map(row => row.map(escapeCSV).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'retirement-plan-' + new Date().toISOString().slice(0, 10) + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function exportToPDF() {
+      const resultsCard = document.getElementById('resultsCard');
+      if (resultsCard.style.display === 'none') {
+        alert('No results to export. Make sure you have holdings with allocations set.');
+        return;
+      }
+      const exportActions = document.getElementById('exportActions');
+      // Temporarily hide export buttons so they don't appear in the PDF
+      if (exportActions) exportActions.style.display = 'none';
+
+      try {
+        // Clone the results card to a temporary off-screen container for clean capture
+        const clone = resultsCard.cloneNode(true);
+        clone.style.display = 'block';
+        clone.style.animation = 'none';
+        clone.querySelectorAll('*').forEach(el => { el.style.animation = 'none'; });
+
+        // Convert canvas charts to images so html2canvas can capture them
+        const canvases = resultsCard.querySelectorAll('canvas');
+        const cloneCanvases = clone.querySelectorAll('canvas');
+        canvases.forEach((canvas, i) => {
+          if (cloneCanvases[i]) {
+            const img = document.createElement('img');
+            img.src = canvas.toDataURL('image/png');
+            img.style.width = canvas.offsetWidth + 'px';
+            img.style.height = canvas.offsetHeight + 'px';
+            img.style.display = 'block';
+            cloneCanvases[i].parentNode.replaceChild(img, cloneCanvases[i]);
+          }
+        });
+
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'fixed';
+        tempContainer.style.top = '0';
+        tempContainer.style.left = '0';
+        tempContainer.style.width = resultsCard.offsetWidth + 'px';
+        tempContainer.style.opacity = '0';
+        tempContainer.style.pointerEvents = 'none';
+        tempContainer.style.zIndex = '-1';
+        tempContainer.appendChild(clone);
+        document.body.appendChild(tempContainer);
+
+        const opt = {
+          margin: [0.5, 0.5, 0.5, 0.5],
+          filename: 'retirement-plan-' + new Date().toISOString().slice(0, 10) + '.pdf',
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
+          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(clone).save().then(() => {
+          document.body.removeChild(tempContainer);
+          if (exportActions) exportActions.style.display = '';
+        }).catch((err) => {
+          console.error(err);
+          document.body.removeChild(tempContainer);
+          if (exportActions) exportActions.style.display = '';
+          alert('PDF export failed. Please try again.');
+        });
+      } catch (e) {
+        alert('PDF export failed. Please try again.');
+        if (exportActions) exportActions.style.display = '';
+      }
+    }
+
+    // ==================== Holdings Table ====================
+    function renderHoldingsTable() {
+      const tbody = document.getElementById('holdingsBody');
+      tbody.innerHTML = '';
+      holdings.forEach((h, i) => {
+        const tr = document.createElement('tr');
+        const nameId = `holding-name-${i}`;
+        const retId = `holding-ret-${i}`;
+        const lowId = `holding-low-${i}`;
+        const medId = `holding-med-${i}`;
+        const highId = `holding-high-${i}`;
+        tr.innerHTML = `
+          <td><input type="text" id="${nameId}" name="${nameId}" value="${h.name}" onchange="updateHolding(${i}, 'name', this.value)" placeholder="e.g. VOO"></td>
+          <td><input type="number" id="${retId}" name="${retId}" value="${h.return}" step="0.1" min="0" onchange="updateHolding(${i}, 'return', this.value)" placeholder="%">%</td>
+          <td><input type="number" id="${lowId}" name="${lowId}" value="${h.low}" step="1" min="0" max="100" onchange="updateHolding(${i}, 'low', this.value)">%</td>
+          <td><input type="number" id="${medId}" name="${medId}" value="${h.medium}" step="1" min="0" max="100" onchange="updateHolding(${i}, 'medium', this.value)">%</td>
+          <td><input type="number" id="${highId}" name="${highId}" value="${h.high}" step="1" min="0" max="100" onchange="updateHolding(${i}, 'high', this.value)">%</td>
+          <td><button class="btn btn-danger" onclick="removeHolding(${i})">Remove</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updatePctTotals();
+    }
+
+    function updatePctTotals() {
+      const risks = ['low', 'medium', 'high'];
+      const ids = ['pctLow', 'pctMedium', 'pctHigh'];
+      risks.forEach((risk, i) => {
+        const total = holdings.reduce((sum, h) => sum + h[risk], 0);
+        const el = document.getElementById(ids[i]);
+        el.textContent = `${risk.charAt(0).toUpperCase() + risk.slice(1)} Risk: ${total.toFixed(0)}%`;
+        el.classList.remove('ok', 'warn');
+        if (holdings.length === 0) {
+          el.classList.remove('ok', 'warn');
+        } else if (Math.abs(total - 100) < 0.01) {
+          el.classList.add('ok');
+        } else {
+          el.classList.add('warn');
+        }
+      });
+    }
+
+    function addHolding() {
+      holdings.push({ name: '', return: 5.0, low: 0, medium: 0, high: 0 });
+      renderHoldingsTable();
+      calculate(); // Recalculate results so the new holding appears in the breakdown
+    }
+
+    function removeHolding(index) {
+      holdings.splice(index, 1);
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations(); // Re-enable recommendation buttons if needed
+    }
+
+    function updateHolding(index, field, value) {
+      if (field === 'name') holdings[index][field] = value;
+      else holdings[index][field] = clamp(parseInput(value), 0, 100);
+      updatePctTotals();
+      calculate();
+    }
+
+    function loadDefaults() {
+      if (holdings.length > 0 && !confirm('This will replace your current holdings with defaults. Continue?')) return;
+      holdings = JSON.parse(JSON.stringify(defaultHoldings));
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations(); // Reset recommendation button states
+    }
+
+    function resetHoldings() {
+      if (!confirm('Are you sure you want to remove all holdings?')) return;
+      holdings = [];
+      renderHoldingsTable();
+      calculate();
+      renderRecommendations(); // Re-enable all recommendation buttons
+    }
+
+    // ==================== Comparison Chart ====================
+    function renderComparisonChart() {
+      const section = document.getElementById('comparisonSection');
+      const canvas = document.getElementById('comparisonChart');
+      if (!canvas) return;
+
+      if (holdings.length === 0) {
+        section.style.display = 'none';
+        if (comparisonChart) { comparisonChart.destroy(); comparisonChart = null; }
+        return;
+      }
+
+      // Only show if at least one profile has allocations
+      const hasAllocations = ['low', 'medium', 'high'].some(risk =>
+        holdings.reduce((sum, h) => sum + h[risk], 0) > 0
+      );
+      if (!hasAllocations) {
+        section.style.display = 'none';
+        if (comparisonChart) { comparisonChart.destroy(); comparisonChart = null; }
+        return;
+      }
+
+      section.style.display = 'block';
+
+      if (comparisonChart) {
+        comparisonChart.destroy();
+        comparisonChart = null;
+      }
+
+      const labels = holdings.map(h => h.name || 'Unnamed');
+      const lowData = holdings.map(h => h.low);
+      const medData = holdings.map(h => h.medium);
+      const highData = holdings.map(h => h.high);
+      const textColor = getChartTextColor();
+      const gridColor = getChartGridColor();
+
+      const ctx = canvas.getContext('2d');
+      comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+      datasets: [
+        {
+          label: 'Low Risk',
+          data: lowData,
+          backgroundColor: '#22c55e',
+          borderColor: '#16a34a',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'Medium Risk',
+          data: medData,
+          backgroundColor: '#f59e0b',
+          borderColor: '#d97706',
+          borderWidth: 1,
+          borderRadius: 4
+        },
+        {
+          label: 'High Risk',
+          data: highData,
+          backgroundColor: '#ef4444',
+          borderColor: '#dc2626',
+          borderWidth: 1,
+          borderRadius: 4
+        }
+      ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                color: textColor,
+                font: { size: 12, weight: '500' },
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                padding: 20
+              }
+            },              tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.85)',
+              titleColor: '#fff',
+              bodyColor: '#fff',
+              padding: 10,
+              callbacks: {
+                label: function(context) {
+                  const riskIdx = context.datasetIndex;
+                  const risk = ['low', 'medium', 'high'][riskIdx];
+                  const holdingIdx = context.dataIndex;
+                  const h = holdings[holdingIdx];
+                  const pct = context.parsed.y;
+                  const lumpSum = comparisonLumpSums[risk] || 0;
+                  const amount = lumpSum * (pct / 100);
+                  return `${context.dataset.label}: ${pct.toFixed(0)}% (${formatCurrency(amount)})`;
+                }
+              }
+            }
+          },            scales: {
+            x: {
+              ticks: { color: textColor, font: { size: 11 } },
+              grid: { color: gridColor },
+              barPercentage: 0.7,
+              categoryPercentage: 0.8,
+              title: {
+                display: true,
+                text: 'Holdings',
+                color: textColor,
+                font: { size: 12, weight: '600' }
+              }
+            },
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { color: textColor, font: { size: 11 }, callback: v => v + '%' },
+              grid: { color: gridColor },
+              title: {
+                display: true,
+                text: 'Allocation %',
+                color: textColor,
+                font: { size: 12, weight: '600' }
+              }
+            }
+          },
+          animation: {
+            duration: 800,
+            easing: 'easeOutQuart'
+          }
+        }
+      });
+    }
+
+    // ==================== Calculations ====================
+    function calculate() {
+      // Destroy all existing charts before rebuilding to avoid stale references
+      Object.values(charts).forEach(chart => { if (chart) chart.destroy(); });
+      charts = {};
+      if (comparisonChart) { comparisonChart.destroy(); comparisonChart = null; }
+
+      const currentIncome = parseInput(document.getElementById('currentIncome').value);
+      const ssIncome = parseInput(document.getElementById('ssIncome').value);
+      const pensionIncome = parseInput(document.getElementById('pensionIncome').value);
+
+      const targetIncome = currentIncome * 0.80;
+      const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
+
+      document.getElementById('targetIncome').textContent = formatCurrency(targetIncome);
+      document.getElementById('netIncome').textContent = formatCurrency(netIncome);
+
+      const resultsCard = document.getElementById('resultsCard');
+      const resultsGrid = document.getElementById('resultsGrid');
+
+      updateWhatIfSection();
+
+      if (holdings.length === 0 || netIncome <= 0) {
+        resultsCard.style.display = 'none';
+        return;
+      }
+
+      resultsCard.style.display = 'block';
+      resultsGrid.innerHTML = '';
+
+      const riskLevels = ['low', 'medium', 'high'];
+      const riskLabels = { low: 'Conservative', medium: 'Balanced', high: 'Aggressive' };
+      const riskColors = { low: 'low', medium: 'medium', high: 'high' };
+
+      comparisonLumpSums = {};
+
+      riskLevels.forEach(risk => {
+        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+
+        // If total is 0, show a friendly message instead of broken chart
+        if (totalPct <= 0) {
+          const card = document.createElement('div');
+          card.className = `risk-card ${riskColors[risk]}`;
+          card.innerHTML = `
+            <div class="risk-header ${riskColors[risk]}">
+              <div class="risk-title">${riskLabels[risk]}</div>
+              <span class="risk-badge ${riskColors[risk]}">${risk} risk</span>
+            </div>
+            <div class="risk-body">
+              <div class="no-data">
+                <div class="no-data-icon">📭</div>
+                <h4>No allocations set</h4>
+                <p>Enter allocation percentages for the <strong>${riskLabels[risk]}</strong> risk profile in the holdings table above to see results.</p>
+              </div>
+            </div>
+          `;
+          resultsGrid.appendChild(card);
+          return;
+        }
+
+        const adjustedHoldings = holdings.map(h => {
+          const pct = totalPct > 0 ? (h[risk] / totalPct) * 100 : 0;
+          return { ...h, allocPct: pct };
+        });
+
+        const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
+        const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        comparisonLumpSums[risk] = totalLumpSum;
+
+        const card = document.createElement('div');
+        card.className = `risk-card ${riskColors[risk]}`;
+        const holdingRows = adjustedHoldings.map((h, idx) => {
+          const amount = totalLumpSum * (h.allocPct / 100);
+          return `
+            <div class="holding-item">
+              <span class="holding-name"><span class="holding-dot" style="background:${chartColors[idx % chartColors.length]}"></span>${h.name || 'Unnamed'}</span>
+              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)}</span>
+            </div>
+          `;
+        }).join('');
+
+        const validHoldings = adjustedHoldings.filter(h => h.allocPct > 0);
+        const chartId = `chart-${risk}`;
+
+        card.innerHTML = `
+          <div class="risk-header ${riskColors[risk]}">
+            <div class="risk-title">${riskLabels[risk]}</div>
+            <span class="risk-badge ${riskColors[risk]}">${risk} risk</span>
+          </div>
+          <div class="risk-body">
+            <div class="risk-stat">
+              <span class="risk-stat-label">Weighted Avg Return</span>
+              <span class="risk-stat-value">${formatPercent(weightedReturn)}</span>
+            </div>
+            <div class="risk-stat">
+              <span class="risk-stat-label">Total Lump Sum Needed</span>
+              <span class="risk-stat-value large">${formatCurrency(totalLumpSum)}</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="${chartId}"></canvas>
+            </div>
+            <div class="holding-list">
+              ${holdingRows}
+            </div>
+          </div>
+        `;
+        resultsGrid.appendChild(card);
+
+        // Render chart (old charts already destroyed at start of calculate)
+        const ctx = document.getElementById(chartId).getContext('2d');
+        const labels = validHoldings.map(h => h.name || 'Unnamed');
+        const data = validHoldings.map(h => h.allocPct);
+        const colors = validHoldings.map((_, i) => chartColors[i % chartColors.length]);
+
+        charts[risk] = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data,
+              backgroundColor: colors,
+              borderWidth: 2,
+              borderColor: getChartBorderColor(),
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: {
+                  boxWidth: 12,
+                  padding: 10,
+                  font: { size: 11 }
+                }
+              },
+              tooltip: {
+                callbacks: {
+                  label: function(context) {
+                    const idx = context.dataIndex;
+                    const h = validHoldings[idx];
+                    const amount = totalLumpSum * (h.allocPct / 100);
+                    return `${h.name || 'Unnamed'}: ${h.allocPct.toFixed(1)}% (${formatCurrency(amount)})`;
+                  }
+                }
+              }
+            },
+            animation: {
+              animateScale: true,
+              animateRotate: true
+            }
+          }
+        });
+      });
+
+      renderComparisonChart();
+    }
+
+    // ==================== Init ====================
+    initTheme();
+    renderRecommendations(); // Initial render before loadDefaults
+    loadDefaults(); // loadDefaults() also calls renderRecommendations() at the end
+  </script>
+</body>
+</html>
