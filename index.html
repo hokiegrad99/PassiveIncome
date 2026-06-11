@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Retirement Income Planner</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -376,6 +377,7 @@
     .risk-stat-label { color: var(--text-secondary); font-size: 0.9rem; }
     .risk-stat-value { font-weight: 700; font-size: 1rem; }
     .risk-stat-value.large { font-size: 1.3rem; color: var(--primary); }
+    .risk-stat-value.income { font-size: 1.2rem; color: var(--success); }
     .chart-container {
       position: relative;
       height: 220px;
@@ -540,14 +542,14 @@
       top: 0;
       left: 0;
       width: 800px;
+      opacity: 0;
+      pointer-events: none;
+      z-index: -1;
       background: #ffffff;
       color: #1e293b;
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       padding: 40px;
       box-sizing: border-box;
-      opacity: 0;
-      pointer-events: none;
-      z-index: -1;
     }
     .pdf-header {
       text-align: center;
@@ -643,6 +645,7 @@
     .pdf-risk-stat:last-child { border-bottom: none; }
     .pdf-risk-stat-label { color: #64748b; }
     .pdf-risk-stat-value { font-weight: 700; }
+    .pdf-risk-stat-value.income { color: #22c55e; }
     .pdf-holding-list {
       margin-top: 12px;
     }
@@ -1108,7 +1111,7 @@
     const recommendedHoldings = [
       { symbol: 'BTCI', rate: 32, expenseRatio: 0.99, risk: 5, description: 'NEOS Bitcoin High Income ETF — holds Bitcoin ETPs with a covered call strategy for high monthly income.' },
       { symbol: 'QQQI', rate: 13.76, expenseRatio: 0.68, risk: 4, description: 'NEOS Nasdaq-100 High Income ETF — invests in Nasdaq-100 stocks using a covered call strategy for monthly income.' },
-      { symbol: 'SPYI', rate: 11.87, expenseRatio: 0.68, risk: 3, description: 'NEOS S&P 500 High Income ETF — tracks S&P 500 with a covered call overlay for high monthly income.' },
+      { symbol: 'SPYI', rate: 11.87, expenseRatio: 0.68, risk: 4, description: 'NEOS S&P 500 High Income ETF — tracks S&P 500 with a covered call overlay for high monthly income.' },
       { symbol: 'IAUI', rate: 13.17, expenseRatio: 0.79, risk: 3, description: 'NEOS Gold High Income ETF — holds gold-focused ETPs using a dynamic covered call strategy for monthly income.' },
       { symbol: 'SCHD', rate: 3.26, expenseRatio: 0.06, risk: 3, description: 'Schwab U.S. Dividend Equity ETF — tracks dividend-growth companies with strong fundamentals and sustainable yields.' },
       { symbol: 'GOVT', rate: 3.59, expenseRatio: 0.05, risk: 1, description: 'iShares U.S. Treasury Bond ETF — tracks U.S. Treasury bonds of various maturities for conservative exposure.' },
@@ -1396,6 +1399,24 @@
       const targetIncome = parseInput(document.getElementById('targetIncomeInput').value);
       const netIncome = Math.max(0, targetIncome - ssIncome - pensionIncome);
 
+      // Pre-calculate lump sums and total percentages per risk profile
+      const totalPcts = {
+        low: holdings.reduce((sum, h) => sum + h.low, 0),
+        medium: holdings.reduce((sum, h) => sum + h.medium, 0),
+        high: holdings.reduce((sum, h) => sum + h.high, 0)
+      };
+      const riskLumpSums = {};
+      ['low', 'medium', 'high'].forEach(risk => {
+        const totalPct = totalPcts[risk];
+        if (totalPct <= 0) {
+          riskLumpSums[risk] = 0;
+          return;
+        }
+        const adjusted = holdings.map(h => ({ ...h, allocPct: (h[risk] / totalPct) * 100 }));
+        const weightedReturn = adjusted.reduce((sum, h) => sum + (h.allocPct / 100) * h.return, 0);
+        riskLumpSums[risk] = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+      });
+
       const lines = [];
       lines.push(['Retirement Income Planner Report']);
       lines.push(['Generated on', new Date().toLocaleString()]);
@@ -1408,21 +1429,31 @@
       lines.push(['Net Income Needed', netIncome]);
       lines.push([]);
       lines.push(['Holdings & Allocations']);
-      lines.push(['Holding', 'Return', 'Low Risk %', 'Medium Risk %', 'High Risk %']);
+      lines.push(['Holding', 'Return', 'Low Risk %', 'Low Passive Income', 'Medium Risk %', 'Medium Passive Income', 'High Risk %', 'High Passive Income']);
       holdings.forEach(h => {
-        lines.push([h.name || 'Unnamed', h.return, h.low, h.medium, h.high]);
+        const lowNorm = totalPcts.low > 0 ? h.low / totalPcts.low : 0;
+        const lowIncome = riskLumpSums.low * lowNorm * (h.return / 100);
+        const medNorm = totalPcts.medium > 0 ? h.medium / totalPcts.medium : 0;
+        const medIncome = riskLumpSums.medium * medNorm * (h.return / 100);
+        const highNorm = totalPcts.high > 0 ? h.high / totalPcts.high : 0;
+        const highIncome = riskLumpSums.high * highNorm * (h.return / 100);
+        lines.push([h.name || 'Unnamed', h.return.toFixed(2) + '%', h.low + '%', Math.round(lowIncome), h.medium + '%', Math.round(medIncome), h.high + '%', Math.round(highIncome)]);
       });
       lines.push([]);
       lines.push(['Results Summary']);
-      lines.push(['Risk Profile', 'Weighted Avg Return', 'Total Lump Sum Needed']);
+      lines.push(['Risk Profile', 'Weighted Avg Return', 'Total Lump Sum Needed', 'Total Passive Income']);
       ['low', 'medium', 'high'].forEach(risk => {
-        const totalPct = holdings.reduce((sum, h) => sum + h[risk], 0);
+        const totalPct = totalPcts[risk];
         if (totalPct <= 0) return;
-        const adjusted = holdings.map(h => ({ ...h, allocPct: totalPct > 0 ? (h[risk] / totalPct) * 100 : 0 }));
+        const adjusted = holdings.map(h => ({ ...h, allocPct: (h[risk] / totalPct) * 100 }));
         const weightedReturn = adjusted.reduce((sum, h) => sum + (h.allocPct / 100) * h.return, 0);
         const lumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        const totalPassiveIncome = adjusted.reduce((sum, h) => {
+          const amount = lumpSum * (h.allocPct / 100);
+          return sum + (amount * (h.return / 100));
+        }, 0);
         const label = risk === 'low' ? 'Conservative' : risk === 'medium' ? 'Balanced' : 'Aggressive';
-        lines.push([label, weightedReturn.toFixed(2) + '%', Math.round(lumpSum)]);
+        lines.push([label, weightedReturn.toFixed(2) + '%', Math.round(lumpSum), Math.round(totalPassiveIncome)]);
       });
       lines.push([]);
       lines.push(['Disclaimer']);
@@ -1675,12 +1706,10 @@
       ['low', 'medium', 'high'].forEach(risk => {
         if (charts[risk]) {
           try {
-            // Temporarily disable animation to ensure a fully rendered frame
             const originalAnimation = charts[risk].options.animation;
             charts[risk].options.animation = false;
             charts[risk].update('none');
             pieChartImages[risk] = charts[risk].toBase64Image('image/png', 1.0);
-            // Restore original animation
             charts[risk].options.animation = originalAnimation;
           } catch (e) {
             console.warn('Could not capture pie chart for ' + risk + ' risk profile:', e);
@@ -1707,7 +1736,11 @@
         const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
         const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
         const activeHoldings = adjustedHoldings.filter(h => h.allocPct > 0).length;
-        summaryData[risk] = { weightedReturn, totalLumpSum, activeHoldings };
+        const totalPassiveIncome = adjustedHoldings.reduce((sum, h) => {
+          const amount = totalLumpSum * (h.allocPct / 100);
+          return sum + (amount * (getAdjustedReturn(h) / 100));
+        }, 0);
+        summaryData[risk] = { weightedReturn, totalLumpSum, activeHoldings, totalPassiveIncome };
       });
 
       // Summary comparison table
@@ -1720,7 +1753,6 @@
       });
       html += `</tr></thead><tbody>`;
 
-      // Weighted Avg Return row
       html += `<tr><td>Weighted Avg Return</td>`;
       riskLevels.forEach(risk => {
         const data = summaryData[risk];
@@ -1728,7 +1760,6 @@
       });
       html += `</tr>`;
 
-      // Total Lump Sum Needed row
       html += `<tr><td>Total Lump Sum Needed</td>`;
       riskLevels.forEach(risk => {
         const data = summaryData[risk];
@@ -1736,11 +1767,16 @@
       });
       html += `</tr>`;
 
-      // Active Holdings row
       html += `<tr><td>Active Holdings</td>`;
       riskLevels.forEach(risk => {
         const data = summaryData[risk];
         html += `<td>${data ? data.activeHoldings : '—'}</td>`;
+      });
+      html += `</tr>`;
+      html += `<tr><td>Total Passive Income</td>`;
+      riskLevels.forEach(risk => {
+        const data = summaryData[risk];
+        html += `<td>${data ? formatCurrency(data.totalPassiveIncome) + '/yr' : '—'}</td>`;
       });
       html += `</tr></tbody></table></div>`;
 
@@ -1763,14 +1799,19 @@
         });
         const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
         const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
+        const totalPassiveIncome = adjustedHoldings.reduce((sum, h) => {
+          const amount = totalLumpSum * (h.allocPct / 100);
+          return sum + (amount * (getAdjustedReturn(h) / 100));
+        }, 0);
 
         let holdingsHtml = '';
-        adjustedHoldings.forEach((h, idx) => {
+        adjustedHoldings.filter(h => h.allocPct > 0).forEach((h, idx) => {
           const amount = totalLumpSum * (h.allocPct / 100);
+          const passiveIncome = amount * (getAdjustedReturn(h) / 100);
           holdingsHtml += `
             <div class="pdf-holding-item">
               <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${chartColors[idx % chartColors.length]};margin-right:6px;"></span>${h.name || 'Unnamed'}</span>
-              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)}</span>
+              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)} <span style="color:#22c55e;font-size:0.8rem;margin-left:4px;font-weight:600;">${formatCurrency(passiveIncome)}/yr</span></span>
             </div>
           `;
         });
@@ -1789,6 +1830,10 @@
             <div class="pdf-risk-stat">
               <span class="pdf-risk-stat-label">Total Lump Sum Needed</span>
               <span class="pdf-risk-stat-value">${formatCurrency(totalLumpSum)}</span>
+            </div>
+            <div class="pdf-risk-stat">
+              <span class="pdf-risk-stat-label">Total Passive Income</span>
+              <span class="pdf-risk-stat-value income">${formatCurrency(totalPassiveIncome)}/yr</span>
             </div>
             ${pieChartHtml}
             <div class="pdf-holding-list">${holdingsHtml}</div>
@@ -1820,49 +1865,79 @@
       `;
 
       container.innerHTML = html;
-      container.style.opacity = '1';
 
-      const opt = {
-        margin: [0.6, 0.5, 0.6, 0.5], // top, left, bottom, right (inches)
-        filename: 'retirement-plan-' + new Date().toISOString().slice(0, 10) + '.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', scrollY: 0 },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-        pagebreak: { mode: 'css', avoid: '.pdf-risk-card' }
-      };
+      // Determine jsPDF constructor
+      const JsPDF = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : window.jsPDF;
+      if (typeof html2canvas === 'undefined' || !JsPDF) {
+        alert('PDF libraries not loaded. Please try again.');
+        container.innerHTML = '';
+        return;
+      }
 
-      html2pdf().set(opt).from(container).toPdf().get('pdf').then(function(pdf) {
-        const totalPages = pdf.internal.getNumberOfPages();
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
+      // Use html2canvas with onclone to make the cloned container visible
+      html2canvas(container, {
+        scale: 1.5,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: 800,
+        scrollX: 0,
+        scrollY: 0,
+        onclone: function(clonedDoc) {
+          const clonedContainer = clonedDoc.getElementById('pdfPrintContainer');
+          if (clonedContainer) {
+            clonedContainer.style.opacity = '1';
+            clonedContainer.style.position = 'absolute';
+            clonedContainer.style.top = '0';
+            clonedContainer.style.left = '0';
+            clonedContainer.style.zIndex = '9999';
+            clonedContainer.style.pointerEvents = 'auto';
+            clonedContainer.style.display = 'block';
+          }
+        }
+      }).then(function(canvas) {
+        const imgData = canvas.toDataURL('image/jpeg', 0.85);
+        const pdf = new JsPDF('p', 'in', 'letter');
 
+        const pageWidth = 8.5;
+        const pageHeight = 11;
+        const margin = [0.6, 0.5, 0.6, 0.5];
+        const contentWidth = pageWidth - margin[1] - margin[3];
+        const contentHeight = pageHeight - margin[0] - margin[2];
+
+        const imgWidth = contentWidth;
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        const totalPages = Math.max(1, Math.ceil(imgHeight / contentHeight));
+
+        for (let page = 0; page < totalPages; page++) {
+          if (page > 0) pdf.addPage();
+          const position = margin[0] - page * contentHeight;
+          pdf.addImage(imgData, 'JPEG', margin[1], position, imgWidth, imgHeight);
+        }
+
+        // Add headers and footers to every page
         for (let i = 1; i <= totalPages; i++) {
           pdf.setPage(i);
-          // Header
           pdf.setFontSize(10);
           pdf.setTextColor(15, 118, 110);
-          pdf.text('Retirement Income Planner', 0.5, 0.35);
+          pdf.text('Retirement Income Planner', margin[1], 0.35);
           pdf.setFontSize(8);
           pdf.setTextColor(100, 116, 139);
-          pdf.text(dateStr, pageWidth - 0.5, 0.35, { align: 'right' });
-          // Header line
+          pdf.text(dateStr, pageWidth - margin[3], 0.35, { align: 'right' });
           pdf.setDrawColor(226, 232, 240);
           pdf.setLineWidth(0.01);
-          pdf.line(0.5, 0.4, pageWidth - 0.5, 0.4);
+          pdf.line(margin[1], 0.4, pageWidth - margin[3], 0.4);
 
-          // Footer
           pdf.setFontSize(8);
           pdf.setTextColor(100, 116, 139);
-          pdf.text('Page ' + i + ' of ' + totalPages, pageWidth - 0.5, pageHeight - 0.3, { align: 'right' });
-          pdf.text('For educational purposes only — not financial advice.', 0.5, pageHeight - 0.3);
+          pdf.text('Page ' + i + ' of ' + totalPages, pageWidth - margin[3], pageHeight - 0.3, { align: 'right' });
+          pdf.text('For educational purposes only — not financial advice.', margin[1], pageHeight - 0.3);
         }
-        pdf.save(opt.filename);
+
+        pdf.save('retirement-plan-' + new Date().toISOString().slice(0, 10) + '.pdf');
         container.innerHTML = '';
-        container.style.opacity = '0';
       }).catch(function(err) {
-        console.error(err);
+        console.error('PDF export error:', err);
         container.innerHTML = '';
-        container.style.opacity = '0';
         alert('PDF export failed. Please try again.');
       });
     }
@@ -2040,7 +2115,8 @@
                   const pct = context.parsed.y;
                   const lumpSum = comparisonLumpSums[risk] || 0;
                   const amount = lumpSum * (pct / 100);
-                  return `${context.dataset.label}: ${pct.toFixed(0)}% (${formatCurrency(amount)})`;
+                  const passiveIncome = amount * (getAdjustedReturn(h) / 100);
+                  return `${context.dataset.label}: ${pct.toFixed(0)}% (${formatCurrency(amount)}) → ${formatCurrency(passiveIncome)}/yr`;
                 }
               }
             }
@@ -2152,15 +2228,20 @@
         const weightedReturn = adjustedHoldings.reduce((sum, h) => sum + (h.allocPct / 100) * getAdjustedReturn(h), 0);
         const totalLumpSum = weightedReturn > 0 ? netIncome / (weightedReturn / 100) : 0;
         comparisonLumpSums[risk] = totalLumpSum;
+        const totalPassiveIncome = adjustedHoldings.reduce((sum, h) => {
+          const amount = totalLumpSum * (h.allocPct / 100);
+          return sum + (amount * (getAdjustedReturn(h) / 100));
+        }, 0);
 
         const card = document.createElement('div');
         card.className = `risk-card ${riskColors[risk]}`;
-        const holdingRows = adjustedHoldings.map((h, idx) => {
+        const holdingRows = adjustedHoldings.filter(h => h.allocPct > 0).map((h, idx) => {
           const amount = totalLumpSum * (h.allocPct / 100);
+          const passiveIncome = amount * (getAdjustedReturn(h) / 100);
           return `
             <div class="holding-item">
               <span class="holding-name"><span class="holding-dot" style="background:${chartColors[idx % chartColors.length]}"></span>${h.name || 'Unnamed'}</span>
-              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)}</span>
+              <span>${h.allocPct.toFixed(1)}% · ${formatCurrency(amount)} <span style="color:var(--success);font-size:0.85rem;margin-left:4px;font-weight:600;">${formatCurrency(passiveIncome)}/yr</span></span>
             </div>
           `;
         }).join('');
@@ -2181,6 +2262,10 @@
             <div class="risk-stat">
               <span class="risk-stat-label">Total Lump Sum Needed</span>
               <span class="risk-stat-value large">${formatCurrency(totalLumpSum)}</span>
+            </div>
+            <div class="risk-stat">
+              <span class="risk-stat-label">Total Passive Income</span>
+              <span class="risk-stat-value income">${formatCurrency(totalPassiveIncome)}/yr</span>
             </div>
             <div class="chart-container">
               <canvas id="${chartId}"></canvas>
@@ -2227,7 +2312,8 @@
                     const idx = context.dataIndex;
                     const h = validHoldings[idx];
                     const amount = totalLumpSum * (h.allocPct / 100);
-                    return `${h.name || 'Unnamed'}: ${h.allocPct.toFixed(1)}% (${formatCurrency(amount)})`;
+                    const passiveIncome = amount * (getAdjustedReturn(h) / 100);
+                    return `${h.name || 'Unnamed'}: ${h.allocPct.toFixed(1)}% (${formatCurrency(amount)}) → ${formatCurrency(passiveIncome)}/yr`;
                   }
                 }
               }
